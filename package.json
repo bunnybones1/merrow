@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/three": "^0.163.0",
     "memoizer-ts": "^1.0.1",
     "three": "^0.163.0",
     "typescript": "^5.4.5"
