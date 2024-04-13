@@ -1,6 +1,7 @@
 {
   "name": "threejs-flowchart-3d",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "scripts": {
     "dev": "vite",
@@ -11,13 +12,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/three": "^0.163.0",
     "memoizer-ts": "^1.0.1",
     "three": "^0.163.0",
     "typescript": "^5.4.5"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.6.4",
-    "vite": "^5.2.8"
+    "@types/three": "^0.163.0",
+    "vite": "^5.2.8",
+    "vite-plugin-glsl": "^1.3.0"
   }
 }

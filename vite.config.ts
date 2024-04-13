@@ -1,13 +1,16 @@
-import path from 'path'
-import { defineConfig } from 'vite';
+import path from "path"
+import glsl from "vite-plugin-glsl"
+import { defineConfig } from "vite"
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src')
-    }
+      "@": path.resolve(__dirname, "src"),
+    },
   },
   optimizeDeps: {
-    include: ['three']
-  }
-});
+    include: ["three"],
+  },
+
+  plugins: [glsl()],
+})

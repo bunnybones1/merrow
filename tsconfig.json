@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "moduleResolution": "Bundler",
-    "target": "es6",
+    "target": "es2020",
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "strictNullChecks": true,
