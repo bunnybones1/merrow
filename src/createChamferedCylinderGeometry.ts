@@ -32,6 +32,6 @@ export function createChamferedCylinderGeometry(
   return geometry
 }
 
-export const createMemoizedChamferedCylinderGeometry = Memoizer.makeMemoized(
+export const getChamferedCylinderGeometry = Memoizer.makeMemoized(
   createChamferedCylinderGeometry,
 )
