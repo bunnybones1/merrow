@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "target": "es6",
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "strictNullChecks": true,
+    "useUnknownInCatchVariables": false,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": false,
+    "resolveJsonModule": true,
+
+    "noEmit": true,
+    "module": "esnext",
+    "outDir": "./build",
+    
+    "lib": ["dom", "dom.iterable", "esnext"],
+
+    "noImplicitAny": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictPropertyInitialization": false,
+    "isolatedModules": true,
+    "useDefineForClassFields": false,
+    "incremental": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "paths": {
+      "~/*": ["./src/*"]
+    },
+  },
+  "include": ["src/**/*.ts","src/**/*.tsx", "src/**/*.json" ]
+}

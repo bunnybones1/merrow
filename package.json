@@ -1,0 +1,22 @@
+{
+  "name": "threejs-flowchart-3d",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "npx @biomejs/biome check --apply ./src"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "memoizer-ts": "^1.0.1",
+    "three": "^0.163.0",
+    "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.6.4",
+    "vite": "^5.2.8"
+  }
+}
