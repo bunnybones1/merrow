@@ -1,12 +1,17 @@
 import Mermaid from "mermaid"
-import { type BufferGeometry, type Object3D, Vector3 } from "three"
-import { MeshStandardMaterial } from "three"
+import {
+  type BufferGeometry,
+  MeshPhysicalMaterial,
+  type Object3D,
+  type Texture,
+  Vector3,
+} from "three"
 import { Mesh } from "three"
 import { getChamferedCylinderGeometry } from "./geometry/createChamferedCylinderGeometry"
 import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
 import { getOctahedronGeometry } from "./geometry/createOctahedronGeometry"
 import { getTetrahedronGeometry } from "./geometry/createTetrahedronGeometry"
-import { standardMatParamLib } from "./materials/standardMatParamLib"
+import { physicalMatParamLib } from "./materials/physicalMatParamLib"
 import mermaidtext from "./mermaid-flowchart.md?raw"
 import type {
   MermaidEdge,
@@ -15,27 +20,29 @@ import type {
   MermaidVertex,
   MermaidVertexType,
 } from "./typings/mermaidFlowchartTypes"
+import { makeDetRand } from "./utils/math/makeDetRand"
 import { randCentered } from "./utils/math/randCentered"
 
 const regex = /(?<=\`\`\`mermaid\n)([\s\S]*?)(?=\n\`\`\`)/g
 
+const detRand = makeDetRand()
 const mermaidNodeGeometryMakers: {
   [K in MermaidVertexType]: () => BufferGeometry
 } = {
   undefined: () => getChamferedCylinderGeometry(1, 1, 32, 11, 0.05),
-  square: () => getChamferedCylinderGeometry(1, 1, 32, 11, 0.05),
-  stadium: () => getChamferedCylinderGeometry(0.8, 1, 32, 11, 0.95),
-  subroutine: () => getChamferedCylinderGeometry(0.6, 1, 32, 11, 0.05),
+  square: () => getChamferedCylinderGeometry(1, 1, 8, 11, 0.15, true),
+  stadium: () => getChamferedCylinderGeometry(1, 1, 32, 11, 0.5),
+  subroutine: () => getChamferedCylinderGeometry(0.6, 1, 6, 15, 0.25, true),
   cylinder: () => getChamferedCylinderGeometry(1, 1, 32, 11, 0.05),
   circle: () => getIcoSphereGeometry(1, 4),
   doublecircle: () => getIcoSphereGeometry(1.25, 4),
-  odd: () => getOctahedronGeometry(1, 1),
-  diamond: () => getOctahedronGeometry(1, 0),
-  hexagon: () => getIcoSphereGeometry(1, 1),
-  lean_right: () => getTetrahedronGeometry(1, 0),
-  lean_left: () => getTetrahedronGeometry(1, 0),
-  trapezoid: () => getTetrahedronGeometry(1, 1),
-  inv_trapezoid: () => getTetrahedronGeometry(1, 1),
+  odd: () => getOctahedronGeometry(1, 1, true),
+  diamond: () => getOctahedronGeometry(1, 0, true),
+  hexagon: () => getIcoSphereGeometry(1, 1, true),
+  lean_right: () => getTetrahedronGeometry(1, 0, true),
+  lean_left: () => getTetrahedronGeometry(1, 0, true),
+  trapezoid: () => getTetrahedronGeometry(1, 1, true),
+  inv_trapezoid: () => getTetrahedronGeometry(1, 1, true),
 }
 
 const mermaidEdgeGeometryMakers: {
@@ -86,11 +93,7 @@ class FlowChart {
 const __spread = 2
 const __minDistance = 3
 
-export function testMermaidFlowchart(pivot: Object3D) {
-  const vertMaterial = new MeshStandardMaterial(
-    standardMatParamLib.whitePlastic,
-  )
-  const edgeMaterial = new MeshStandardMaterial(standardMatParamLib.gold)
+export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
   // for (let i = 0; i < 3; i++) {
   //   const height = 0.2 + i * 0.25
   //   for (let j = 0; j < 3; j++) {
@@ -110,24 +113,34 @@ export function testMermaidFlowchart(pivot: Object3D) {
         const flowChart = new FlowChart()
         for (const vId of Object.keys(verts)) {
           const vert = verts[vId]
-          const geo = mermaidNodeGeometryMakers[vert.type || "undefined"]
-          const nodeMesh = new Mesh(geo(), vertMaterial)
+          const geo = mermaidNodeGeometryMakers[vert.type || "undefined"]()
+          const nodeMaterial = new MeshPhysicalMaterial({
+            ...physicalMatParamLib.whitePlastic,
+            envMap,
+            flatShading: geo.userData.requestFlatShading,
+          })
+          const nodeMesh = new Mesh(geo, nodeMaterial)
           nodeMesh.position.set(
-            randCentered(__spread),
-            randCentered(__spread),
-            randCentered(__spread),
+            randCentered(__spread, 0, detRand),
+            randCentered(__spread, 0, detRand),
+            randCentered(__spread, 0, detRand),
           )
           pivot.add(nodeMesh)
           flowChart.nodes.push(new Node(vert, nodeMesh))
         }
         for (const edge of edges) {
           const edgeMeshType = `${edge.stroke}-${edge.type}` as const
-          const geo = mermaidEdgeGeometryMakers[edgeMeshType]
-          const linkMesh = new Mesh(geo(), edgeMaterial)
+          const geo = mermaidEdgeGeometryMakers[edgeMeshType]()
+          const linkMaterial = new MeshPhysicalMaterial({
+            ...physicalMatParamLib.gold,
+            envMap,
+            flatShading: geo.userData.requestFlatShading,
+          })
+          const linkMesh = new Mesh(geo, linkMaterial)
           linkMesh.position.set(
-            randCentered(8),
-            randCentered(8),
-            randCentered(8),
+            randCentered(__spread, 0, detRand),
+            randCentered(__spread, 0, detRand),
+            randCentered(__spread, 0, detRand),
           )
           pivot.add(linkMesh)
           flowChart.edges.push(new Edge(edge, linkMesh))

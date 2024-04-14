@@ -10,7 +10,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ["three"],
+    include: ["three", "mermaid"],
   },
   plugins: [glsl()],
 })

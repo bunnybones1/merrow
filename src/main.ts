@@ -1,4 +1,4 @@
-import { Color, Mesh, WebGLRenderer } from "three"
+import { Color, Mesh, PMREMGenerator, WebGLRenderer } from "three"
 import { PointLight } from "three"
 import { PerspectiveCamera } from "three"
 import { Scene } from "three"
@@ -44,7 +44,7 @@ const worldColorBottom = new Color(0.5, 0.1, 0.7).multiplyScalar(0.75)
 
 const worldLight = new HemisphereLight(worldColorTop, worldColorBottom, 1.2)
 const light = new PointLight(0xffffff, 10)
-scene.add(worldLight)
+// scene.add(worldLight)
 scene.add(light)
 light.position.set(0, 4, 4)
 
@@ -79,7 +79,8 @@ function rafSimulate() {
   pivot.rotation.y += 0.001
 }
 rafSimulate()
-
+const envMaker = new PMREMGenerator(renderer)
+const envMap = envMaker.fromScene(bgScene)
 initResizeHandler(camera, renderer)
 initViewControls(camera, camDistance)
 
@@ -88,17 +89,17 @@ if (import.meta.hot) {
     while (pivotCluster.children.length > 0) {
       pivotCluster.remove(pivotCluster.children[0])
     }
-    mod.testModelCluster(pivotCluster)
+    mod.testModelCluster(pivotCluster, envMap.texture)
   })
 }
-testModelCluster(pivotCluster)
+testModelCluster(pivotCluster, envMap.texture)
 
 if (import.meta.hot) {
   import.meta.hot.accept("./testMermaidFlowchart", (mod) => {
     while (pivotMermaid.children.length > 0) {
       pivotMermaid.remove(pivotMermaid.children[0])
     }
-    simulateMermaid = mod.testMermaidFlowchart(pivotMermaid)
+    simulateMermaid = mod.testMermaidFlowchart(pivotMermaid, envMap.texture)
   })
 }
-simulateMermaid = testMermaidFlowchart(pivotMermaid)
+simulateMermaid = testMermaidFlowchart(pivotMermaid, envMap.texture)

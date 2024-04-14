@@ -12,7 +12,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@mermaid-js/parser": "0.1.0-rc.1",
     "memoizer-ts": "^1.0.1",
     "mermaid": "^10.9.0",
     "three": "^0.163.0",

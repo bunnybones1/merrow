@@ -5,8 +5,10 @@ import { IcosahedronGeometry } from "three"
 export function createIcoSphereGeometry(
   radius: number,
   detail: number,
+  markForFlatShading = false,
 ): BufferGeometry {
   const geometry = new IcosahedronGeometry(radius, detail)
+  geometry.userData.requestFlatShading = markForFlatShading
   return geometry
 }
 
