@@ -170,6 +170,9 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           }
         }
       }
+      for (const edge of flowchart.edges) {
+        //
+      }
       for (const node of flowchart.nodes) {
         node.integratePotential()
       }

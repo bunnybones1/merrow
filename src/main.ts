@@ -2,15 +2,17 @@ import { Color, Mesh, PMREMGenerator, WebGLRenderer } from "three"
 import { PointLight } from "three"
 import { PerspectiveCamera } from "three"
 import { Scene } from "three"
-import { HemisphereLight } from "three"
 import { Object3D } from "three"
+import { EffectComposer, RenderPass } from "three/examples/jsm/Addons.js"
 import type {} from "vite"
 import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
+import { initRaycastSelectionOutlines } from "./initRaycastSelectionOutlines"
 import { initResizeHandler } from "./initResizeHandler"
 import { initViewControls } from "./initViewControls"
 import HemisphereAmbientMaterial from "./materials/HemisphereAmbientMaterial"
 import { testMermaidFlowchart } from "./testMermaidFlowchart"
 import { testModelCluster } from "./testModelCluster"
+import { deepenColor } from "./utils/color/deepenColor"
 
 // Create a scene
 const scene = new Scene()
@@ -42,7 +44,6 @@ pivot.add(pivotMermaid)
 const worldColorTop = new Color(0.2, 0.5, 0.7).multiplyScalar(0.75)
 const worldColorBottom = new Color(0.5, 0.1, 0.7).multiplyScalar(0.75)
 
-const worldLight = new HemisphereLight(worldColorTop, worldColorBottom, 1.2)
 const light = new PointLight(0xffffff, 10)
 // scene.add(worldLight)
 scene.add(light)
@@ -57,6 +58,25 @@ const bgSphere = new Mesh(
 bgSphere.scale.setScalar(1)
 bgScene.add(bgSphere)
 
+// postprocessing
+
+const composer = new EffectComposer(renderer)
+
+const renderBGPass = new RenderPass(bgScene, bgCam)
+composer.addPass(renderBGPass)
+const renderPass = new RenderPass(scene, camera)
+renderPass.clear = false
+composer.addPass(renderPass)
+
+initRaycastSelectionOutlines(scene, camera, composer, renderer)
+
+window.addEventListener("resize", onWindowResize)
+
+function onWindowResize() {
+  const width = window.innerWidth
+  const height = window.innerHeight
+  composer.setSize(width, height)
+}
 function rafRender() {
   requestAnimationFrame(rafRender)
   bgCam.quaternion.copy(camera.quaternion)
@@ -64,8 +84,7 @@ function rafRender() {
   bgCam.scale.copy(camera.scale)
   bgCam.projectionMatrix.copy(camera.projectionMatrix)
   bgCam.projectionMatrixInverse.copy(camera.projectionMatrixInverse)
-  renderer.render(bgScene, bgCam)
-  renderer.render(scene, camera)
+  composer.render()
 }
 rafRender()
 
@@ -79,8 +98,13 @@ function rafSimulate() {
   pivot.rotation.y += 0.001
 }
 rafSimulate()
+
 const envMaker = new PMREMGenerator(renderer)
 const envMap = envMaker.fromScene(bgScene)
+
+deepenColor(worldColorTop, 0.75)
+deepenColor(worldColorBottom, 0.75)
+
 initResizeHandler(camera, renderer)
 initViewControls(camera, camDistance)
 
