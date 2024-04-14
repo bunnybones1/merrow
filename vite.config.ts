@@ -1,5 +1,6 @@
 import path from "path"
 import glsl from "vite-plugin-glsl"
+
 import { defineConfig } from "vite"
 
 export default defineConfig({
@@ -11,6 +12,5 @@ export default defineConfig({
   optimizeDeps: {
     include: ["three"],
   },
-
   plugins: [glsl()],
 })

@@ -22,7 +22,7 @@
     
     "lib": ["dom", "dom.iterable", "esnext"],
 
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "forceConsistentCasingInFileNames": true,
     "strictPropertyInitialization": false,
     "isolatedModules": true,

@@ -2,7 +2,7 @@ import { Memoizer } from "memoizer-ts"
 import type { BufferGeometry } from "three"
 import { LatheGeometry } from "three"
 import { Vector2 } from "three"
-import { lerp } from "./utils/math/lerp"
+import { lerp } from "../utils/math/lerp"
 
 export function createChamferedCylinderGeometry(
   radius: number,

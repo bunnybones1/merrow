@@ -1,14 +1,15 @@
-import { Color, Mesh, Quaternion, WebGLRenderer } from "three"
+import { Color, Mesh, WebGLRenderer } from "three"
 import { PointLight } from "three"
 import { PerspectiveCamera } from "three"
 import { Scene } from "three"
 import { HemisphereLight } from "three"
 import { Object3D } from "three"
 import type {} from "vite"
-import { getIcoSphereGeometry } from "./createIcoSphereGeometry"
+import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
 import { initResizeHandler } from "./initResizeHandler"
 import { initViewControls } from "./initViewControls"
 import HemisphereAmbientMaterial from "./materials/HemisphereAmbientMaterial"
+import { testMermaidFlowchart } from "./testMermaidFlowchart"
 import { testModelCluster } from "./testModelCluster"
 
 // Create a scene
@@ -26,12 +27,17 @@ const camDistance = 5
 camera.position.z = camDistance
 
 const renderer = new WebGLRenderer()
+
 renderer.autoClear = false
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
 const pivot = new Object3D()
 scene.add(pivot)
+const pivotCluster = new Object3D()
+pivot.add(pivotCluster)
+const pivotMermaid = new Object3D()
+pivot.add(pivotMermaid)
 
 const worldColorTop = new Color(0.2, 0.5, 0.7).multiplyScalar(0.75)
 const worldColorBottom = new Color(0.5, 0.1, 0.7).multiplyScalar(0.75)
@@ -63,10 +69,14 @@ function rafRender() {
 }
 rafRender()
 
+let simulateMermaid: (() => void) | undefined
 function rafSimulate() {
   requestAnimationFrame(rafSimulate)
-  pivot.rotation.x += 0.01
-  pivot.rotation.y += 0.01
+  if (simulateMermaid) {
+    simulateMermaid()
+  }
+  pivot.rotation.x += 0.001
+  pivot.rotation.y += 0.001
 }
 rafSimulate()
 
@@ -75,10 +85,20 @@ initViewControls(camera, camDistance)
 
 if (import.meta.hot) {
   import.meta.hot.accept("./testModelCluster", (mod) => {
-    while (pivot.children.length > 0) {
-      pivot.remove(pivot.children[0])
+    while (pivotCluster.children.length > 0) {
+      pivotCluster.remove(pivotCluster.children[0])
     }
-    mod.testModelCluster(pivot)
+    mod.testModelCluster(pivotCluster)
   })
 }
-testModelCluster(pivot)
+testModelCluster(pivotCluster)
+
+if (import.meta.hot) {
+  import.meta.hot.accept("./testMermaidFlowchart", (mod) => {
+    while (pivotMermaid.children.length > 0) {
+      pivotMermaid.remove(pivotMermaid.children[0])
+    }
+    simulateMermaid = mod.testMermaidFlowchart(pivotMermaid)
+  })
+}
+simulateMermaid = testMermaidFlowchart(pivotMermaid)
