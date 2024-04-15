@@ -1,8 +1,8 @@
 {
-  "name": "threejs-flowchart-3d",
+  "name": "merrow",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "A 3D visualizer for mermaid graphs.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
