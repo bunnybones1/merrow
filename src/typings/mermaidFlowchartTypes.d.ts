@@ -71,6 +71,15 @@ export type MermaidEdge = {
   type: MermaidEdgeType
 }
 
+export type MermaidSubGraph = {
+  classes: []
+  dir: any
+  id: string
+  labelType: "text"
+  nodes: string[]
+  title: string
+}
+
 export type MermaidFlowchartDiagramDB = DiagramDB & {
   setAccTitle: (txt: string) => void
   getAccTitle: () => string
@@ -107,7 +116,7 @@ export type MermaidFlowchartDiagramDB = DiagramDB & {
   addSubGraph: (_id: any, list: any, _title: any) => any
   getDepthFirstPos: (pos: any) => any
   indexNodes: () => void
-  getSubGraphs: () => any[]
+  getSubGraphs: () => MermaidSubGraph[]
   destructLink: (
     _str: any,
     _startStr: any,

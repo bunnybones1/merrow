@@ -25,7 +25,7 @@ const camera = new PerspectiveCamera(
   1000,
 )
 
-const camDistance = 5
+const camDistance = 18
 camera.position.z = camDistance
 
 const renderer = new WebGLRenderer()
@@ -94,8 +94,8 @@ function rafSimulate() {
   if (simulateMermaid) {
     simulateMermaid()
   }
-  pivot.rotation.x += 0.001
-  pivot.rotation.y += 0.001
+  // pivot.rotation.x += 0.001
+  // pivot.rotation.y += 0.001
 }
 rafSimulate()
 
@@ -108,15 +108,15 @@ deepenColor(worldColorBottom, 0.75)
 initResizeHandler(camera, renderer)
 initViewControls(camera, camDistance)
 
-if (import.meta.hot) {
-  import.meta.hot.accept("./testModelCluster", (mod) => {
-    while (pivotCluster.children.length > 0) {
-      pivotCluster.remove(pivotCluster.children[0])
-    }
-    mod.testModelCluster(pivotCluster, envMap.texture)
-  })
-}
-testModelCluster(pivotCluster, envMap.texture)
+// if (import.meta.hot) {
+//   import.meta.hot.accept("./testModelCluster", (mod) => {
+//     while (pivotCluster.children.length > 0) {
+//       pivotCluster.remove(pivotCluster.children[0])
+//     }
+//     mod.testModelCluster(pivotCluster, envMap.texture)
+//   })
+// }
+// testModelCluster(pivotCluster, envMap.texture)
 
 if (import.meta.hot) {
   import.meta.hot.accept("./testMermaidFlowchart", (mod) => {

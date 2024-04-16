@@ -1,28 +1,24 @@
-```mermaid
-flowchart 
-
-square[t1]
-stadium([t2])
-subroutine[[t3]]
-cylinder[(t4)]
-circle((t5))
-doublecircle(((t6)))
-odd>t7]
-diamond{t8}
-hexagon{{x1}}
-lean_right[/x1/]
-lean_left[\\x1\\]
-trapezoid[/x1\\]
-inv_trapezoid[\\x1/]
-
-a --> b[[bang]]
-```
 
 ```mermaid
 flowchart 
+a((a))
+j{j}
+aa --> a === b --- c --- d --- e -.- f --- g --- h --- i === j
 
-a --> b[[bang]]
-b <--> c[[bong]]
-b ==> c[[bong]]
-b --- c[[bong]]
+a --> c
+a --> d
+a --> e
+j --> f
+j --> g
+j --> h
+
+subgraph sg
+subgraph ssg
+p1 === p2 ==> p3 <==> p1
+x1 --- x2 --> x3 <--> x1
+end
+y1 -.- y2 -.-> y3 <-.-> y1
+end
+j ------- y1
+y2 -.....-> p1
 ```

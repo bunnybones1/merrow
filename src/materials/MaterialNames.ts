@@ -5,3 +5,4 @@ export type MaterialNames =
   | "iron"
   | "steel"
   | "whitePlastic"
+  | "pearl"

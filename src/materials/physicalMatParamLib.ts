@@ -1,4 +1,4 @@
-import type { MeshPhysicalMaterialParameters } from "three"
+import { Color, type MeshPhysicalMaterialParameters } from "three"
 import type { MaterialNames } from "./MaterialNames"
 
 export const physicalMatParamLib: {
@@ -33,20 +33,41 @@ export const physicalMatParamLib: {
 
   aluminum: {
     color: 0xcccccc,
-    metalness: 0.7,
+    metalness: 1,
     roughness: 0.3,
+    sheen: 0,
+    sheenColor: 0xffa70f,
+    clearcoat: 0,
+    clearcoatRoughness: 0.5,
+    iridescence: 0.25,
+    iridescenceIOR: 2,
+    anisotropy: 0.5,
   },
 
   iron: {
     color: 0x43464b,
-    metalness: 0.85,
+    metalness: 1,
     roughness: 0.6,
+    sheen: 1,
+    sheenColor: 0xffa70f,
+    clearcoat: 0,
+    clearcoatRoughness: 0.5,
+    iridescence: 0.2,
+    iridescenceIOR: 2,
+    anisotropy: 0.125,
   },
 
   steel: {
     color: 0x8c8c8c,
-    metalness: 0.85,
-    roughness: 0.5,
+    metalness: 1,
+    roughness: 0.3,
+    sheen: 0,
+    sheenColor: 0xffa70f,
+    clearcoat: 0,
+    clearcoatRoughness: 0.5,
+    iridescence: 0.25,
+    iridescenceIOR: 2,
+    anisotropy: 0.5,
   },
 
   whitePlastic: {
@@ -57,5 +78,17 @@ export const physicalMatParamLib: {
     sheenColor: 0xffffff,
     clearcoat: 1,
     clearcoatRoughness: 0.25,
+  },
+
+  pearl: {
+    color: new Color(2, 2, 2),
+    metalness: 0.2,
+    roughness: 0.55,
+    sheen: 1,
+    sheenColor: 0xffa7af,
+    clearcoat: 1.82,
+    clearcoatRoughness: 0.3,
+    iridescence: 2,
+    iridescenceIOR: 2,
   },
 } as const
