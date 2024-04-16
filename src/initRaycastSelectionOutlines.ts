@@ -46,9 +46,14 @@ export function initRaycastSelectionOutlines(
     const intersections = raycaster.intersectObject(scene, true)
 
     if (intersections.length > 0) {
-      const selectedObject = intersections[0].object
-      addSelectedObject(selectedObject)
-      outlinePass.selectedObjects = selectedObjects
+      for (const intersection of intersections) {
+        const selectedObject = intersection.object
+        if (!selectedObject.userData.notSelectable) {
+          addSelectedObject(selectedObject)
+          outlinePass.selectedObjects = selectedObjects
+          break
+        }
+      }
     } else {
       outlinePass.selectedObjects = []
     }

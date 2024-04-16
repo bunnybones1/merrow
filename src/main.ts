@@ -27,6 +27,7 @@ const camera = new PerspectiveCamera(
 
 const camDistance = 18
 camera.position.z = camDistance
+scene.add(camera)
 
 const renderer = new WebGLRenderer()
 

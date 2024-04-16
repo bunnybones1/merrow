@@ -28,3 +28,13 @@ pnpm dev
 ```
 
 Modify `src/mermaid-flowchart.md` to see the visualization change.
+
+### View controls
+
+Interaction | Effect
+---|---
+Click & drag | rotates the view
+Shift + Click & drag | Pans the view
+mouse wheel (X & Y if your mouse supports it) | Pans the view
+Shift + mouse wheel (Y)|Trucks camera along Z axis 
+Touch & drag | rotates the view

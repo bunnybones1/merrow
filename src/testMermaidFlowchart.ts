@@ -30,6 +30,7 @@ const __minBuffer = 1
 const __maxLinkBuffer = 2
 const __forceRepel = 0.2
 const __forceAttract = 0.05
+const __lengthScale = 4
 
 const regex = /(?<=\`\`\`mermaid\n)([\s\S]*?)(?=\n\`\`\`)/g
 
@@ -54,22 +55,26 @@ const mermaidNodeGeometryMakers: {
 }
 
 const mermaidEdgeGeometryMakers: {
-  [K in MermaidEdgeStrokeType]: () => BufferGeometry
+  [K in MermaidEdgeStrokeType]: (length: number) => BufferGeometry
 } = {
-  "normal-arrow_point": () =>
-    getChamferedCylinderGeometry(0.2, 1, 32, 11, 0.05),
-  "normal-arrow_open": () => getChamferedCylinderGeometry(0.2, 1, 32, 11, 0.05),
-  "normal-double_arrow_point": () =>
-    getChamferedCylinderGeometry(0.2, 1, 32, 11, 0.05),
-  "dotted-arrow_point": () =>
-    getChamferedCylinderGeometry(0.2, 1, 32, 11, 0.05),
-  "dotted-arrow_open": () => getChamferedCylinderGeometry(0.2, 1, 32, 11, 0.05),
-  "dotted-double_arrow_point": () =>
-    getChamferedCylinderGeometry(0.2, 1, 32, 11, 0.05),
-  "thick-arrow_point": () => getChamferedCylinderGeometry(0.3, 1, 32, 11, 0.05),
-  "thick-arrow_open": () => getChamferedCylinderGeometry(0.3, 1, 32, 11, 0.05),
-  "thick-double_arrow_point": () =>
-    getChamferedCylinderGeometry(0.3, 1, 32, 11, 0.05),
+  "normal-arrow_point": (length: number) =>
+    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
+  "normal-arrow_open": (length: number) =>
+    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
+  "normal-double_arrow_point": (length: number) =>
+    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
+  "dotted-arrow_point": (length: number) =>
+    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
+  "dotted-arrow_open": (length: number) =>
+    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
+  "dotted-double_arrow_point": (length: number) =>
+    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
+  "thick-arrow_point": (length: number) =>
+    getChamferedCylinderGeometry(0.3, length, 32, 11, 0.05),
+  "thick-arrow_open": (length: number) =>
+    getChamferedCylinderGeometry(0.3, length, 32, 11, 0.05),
+  "thick-double_arrow_point": (length: number) =>
+    getChamferedCylinderGeometry(0.3, length, 32, 11, 0.05),
 }
 
 const mermaidSubEdgeGeometryMakers: {
@@ -235,7 +240,7 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             opacity: 0.2,
           })
           const subGraphMesh = new Mesh(geo, subGraphMaterial)
-
+          subGraphMesh.userData.notSelectable = true
           subGraphMesh.position.set(
             randCentered(__spread, 0, detRand),
             randCentered(__spread, 0, detRand),
@@ -249,7 +254,9 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         }
         for (const edgeData of edgeDatas) {
           const edgeMeshType = `${edgeData.stroke}-${edgeData.type}` as const
-          const geo = mermaidEdgeGeometryMakers[edgeMeshType]()
+          const geo = mermaidEdgeGeometryMakers[edgeMeshType](
+            edgeData.length * __lengthScale * 0.66,
+          )
           const subGeo = mermaidSubEdgeGeometryMakers[edgeMeshType]()
           const linkMaterialBaseParams = {
             ...physicalMatParamLib.gold,
@@ -273,7 +280,7 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             const sublinkMaterial = new MeshPhysicalMaterial(
               linkMaterialBaseParams,
             )
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < edgeData.length * __lengthScale * 2; i++) {
               const linkSubMesh = new Mesh(subGeo, sublinkMaterial)
               subMeshes.push(linkSubMesh)
               linkMesh.add(linkSubMesh)
@@ -329,15 +336,6 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
       }
     }
   }
-
-  function recursivePotentialPropagation(node: Graph) {
-    for (const child of node.nodes) {
-      if (child instanceof SubGraph) {
-        child.potential.add(node.potential)
-        recursivePotentialPropagation(child)
-      }
-    }
-  }
   asyncWork()
   return function simulationTick() {
     const timeNow = performance.now()
@@ -369,7 +367,8 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         const pA = edge.nodeA.mesh.position
         const pB = edge.nodeB.mesh.position
         const dist1 = pA.distanceTo(pB) - edge.nodeA.radius - edge.nodeB.radius
-        const maxLinkDistance = __maxLinkBuffer + edge.data.length * 2
+        const maxLinkDistance =
+          __maxLinkBuffer + edge.data.length * __lengthScale
         const pull = Math.max(0, dist1 - maxLinkDistance)
         if (pull > 0) {
           temp.subVectors(pA, pB)
@@ -379,7 +378,7 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           edge.nodeB.potential.sub(temp)
         }
         const dist2 = pA.distanceTo(pB) - edge.nodeA.radius - edge.nodeB.radius
-        const minDistance = __minBuffer + edge.data.length * 2
+        const minDistance = __minBuffer + edge.data.length * __lengthScale
         const push = Math.max(0, minDistance - dist2)
         if (push > 0) {
           temp.subVectors(pA, pB)
@@ -402,7 +401,6 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             .multiplyScalar(node.radius / totalRadius)
           centroid.add(temp2)
         }
-        // centroid.lerp(graph.mesh.position, 0.1)
         temp2.subVectors(graph.mesh.position, centroid).multiplyScalar(0.15)
         for (const node of graph.nodes) {
           node.potential.add(temp2)
@@ -411,18 +409,14 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             maxRadius,
             temp.length() + node.radius + __minBuffer * 0.5,
           )
-          // temp.multiplyScalar(0.01)
           temp.multiplyScalar(0.01)
           node.potential.sub(temp)
-
-          // node.mesh.position.add(centroid)
         }
         centroid.sub(graph.mesh.position)
         graph.potential.add(centroid.clone().multiplyScalar(0.1))
         graph.radius = lerp(graph.radius, maxRadius, 0.1)
         graph.mesh.scale.setScalar(graph.radius)
       }
-      // recursivePotentialPropagation(flowchart.graph)
       for (const graph of flowchart.allGraphs) {
         for (const node of graph.nodes) {
           node.integratePotential()
@@ -447,7 +441,8 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
               edge.subMeshes.length) %
               1) -
               0.5) *
-            2.5 *
+            edge.data.length *
+            __lengthScale *
             (edge.data.type === "double_arrow_point" && ism % 2 === 0 ? 1 : -1)
         }
       }
