@@ -3,6 +3,7 @@
 flowchart 
 a((a))
 j{j}
+c{{cat}}
 aa --> a === b --- c --- d --- e -.- f --- g --- h --- i === j
 
 a --> c
@@ -11,6 +12,7 @@ a --> e
 j --> f
 j --> g
 j --> h
+c <==> i
 
 subgraph sg
 subgraph ssg
@@ -24,6 +26,6 @@ end
 y1 -.- y2 -.-> y3 <-.-> y1
 end
 j --- y1
-y2 -.-> p1
-y2 -.-> x1
+y2 -..-> p1
+y2 -..-> x1
 ```

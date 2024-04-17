@@ -45,4 +45,12 @@ export const standardMatParamLib: {
     metalness: 0.3,
     roughness: 0.75,
   },
+
+  bubble: {
+    color: 0xffffff,
+    metalness: 0.3,
+    roughness: 0.75,
+    opacity: 0.2,
+    transparent: true,
+  },
 } as const

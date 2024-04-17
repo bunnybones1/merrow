@@ -1,4 +1,10 @@
-import { Color, Mesh, PMREMGenerator, WebGLRenderer } from "three"
+import {
+  Color,
+  DirectionalLight,
+  Mesh,
+  PMREMGenerator,
+  WebGLRenderer,
+} from "three"
 import { PointLight } from "three"
 import { PerspectiveCamera } from "three"
 import { Scene } from "three"
@@ -45,10 +51,10 @@ pivot.add(pivotMermaid)
 const worldColorTop = new Color(0.2, 0.5, 0.7).multiplyScalar(0.75)
 const worldColorBottom = new Color(0.5, 0.1, 0.7).multiplyScalar(0.75)
 
-const light = new PointLight(0xffffff, 10)
+const light = new DirectionalLight(0xffffff, 2)
 // scene.add(worldLight)
 scene.add(light)
-light.position.set(0, 4, 4)
+light.position.set(0, 40, 4)
 
 const bgScene = new Scene()
 const bgCam = new PerspectiveCamera()

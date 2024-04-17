@@ -1,4 +1,9 @@
-import { Color, type MeshPhysicalMaterialParameters } from "three"
+import {
+  AdditiveBlending,
+  Color,
+  DoubleSide,
+  type MeshPhysicalMaterialParameters,
+} from "three"
 import type { MaterialNames } from "./MaterialNames"
 
 export const physicalMatParamLib: {
@@ -90,5 +95,20 @@ export const physicalMatParamLib: {
     clearcoatRoughness: 0.3,
     iridescence: 2,
     iridescenceIOR: 2,
+  },
+
+  bubble: {
+    color: new Color(0, 0, 0),
+    metalness: 1,
+    roughness: 0.5,
+    sheen: 0.5,
+    sheenColor: 0xffa7af,
+    clearcoat: 1,
+    clearcoatRoughness: 0.8,
+    iridescence: 2,
+    iridescenceIOR: 1.2,
+    depthWrite: false,
+    side: DoubleSide,
+    blending: AdditiveBlending,
   },
 } as const

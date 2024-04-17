@@ -6,3 +6,4 @@ export type MaterialNames =
   | "steel"
   | "whitePlastic"
   | "pearl"
+  | "bubble"

@@ -1,6 +1,7 @@
 import Mermaid from "mermaid"
 import {
   type BufferGeometry,
+  DoubleSide,
   MeshPhysicalMaterial,
   Object3D,
   type Texture,
@@ -12,7 +13,7 @@ import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
 import { getOctahedronGeometry } from "./geometry/createOctahedronGeometry"
 import { getTetrahedronGeometry } from "./geometry/createTetrahedronGeometry"
 import { physicalMatParamLib } from "./materials/physicalMatParamLib"
-import mermaidtext from "./mermaid-flowchart.md?raw"
+import mermaidtext from "./mermaid-flowchart-private.md?raw"
 import type {
   MermaidEdge,
   MermaidEdgeStrokeType,
@@ -228,17 +229,15 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           leafNodeBank.set(vId, new LeafNode(vert, nodeMesh))
         }
         for (const subGraphData of subGraphDatas) {
-          const geo = getIcoSphereGeometry(1, 3)
+          const geo = getIcoSphereGeometry(1, 6)
           const subGraphMaterialBaseParams = {
-            ...physicalMatParamLib.whitePlastic,
+            ...physicalMatParamLib.bubble,
             envMap,
             flatShading: geo.userData.requestFlatShading,
           }
-          const subGraphMaterial = new MeshPhysicalMaterial({
-            ...subGraphMaterialBaseParams,
-            alphaHash: true,
-            opacity: 0.2,
-          })
+          const subGraphMaterial = new MeshPhysicalMaterial(
+            subGraphMaterialBaseParams,
+          )
           const subGraphMesh = new Mesh(geo, subGraphMaterial)
           subGraphMesh.userData.notSelectable = true
           subGraphMesh.position.set(
@@ -255,7 +254,7 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         for (const edgeData of edgeDatas) {
           const edgeMeshType = `${edgeData.stroke}-${edgeData.type}` as const
           const geo = mermaidEdgeGeometryMakers[edgeMeshType](
-            edgeData.length * __lengthScale * 0.66,
+            edgeData.length * __lengthScale * 0.5,
           )
           const subGeo = mermaidSubEdgeGeometryMakers[edgeMeshType]()
           const linkMaterialBaseParams = {
@@ -432,8 +431,11 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           pB,
           nA.radius / (nA.radius + nB.radius),
         )
-        temp.subVectors(pA, pB).normalize()
+        temp.subVectors(pA, pB)
+        const dist = temp.length() * 0.25
+        temp.normalize()
         edge.mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), temp)
+        edge.mesh.scale.y = dist / edge.data.length
         for (let ism = 0; ism < edge.subMeshes.length; ism++) {
           const subMesh = edge.subMeshes[ism]
           subMesh.position.y =
