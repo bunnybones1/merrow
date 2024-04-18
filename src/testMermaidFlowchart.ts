@@ -3,15 +3,19 @@ import {
   type BufferGeometry,
   DoubleSide,
   MeshPhysicalMaterial,
+  type MeshPhysicalMaterialParameters,
   Object3D,
   type Texture,
   Vector3,
 } from "three"
 import { Mesh } from "three"
+import type { MeshPhysicalNodeMaterialParameters } from "three/examples/jsm/nodes/materials/MeshPhysicalNodeMaterial.js"
 import { getChamferedCylinderGeometry } from "./geometry/createChamferedCylinderGeometry"
 import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
 import { getOctahedronGeometry } from "./geometry/createOctahedronGeometry"
 import { getTetrahedronGeometry } from "./geometry/createTetrahedronGeometry"
+import { getTripleChamferedCylinderGeometry } from "./geometry/createTripleChamferedCylinderGeometry"
+import { getWireBoxGeometry } from "./geometry/createWireBoxGeometry"
 import { physicalMatParamLib } from "./materials/physicalMatParamLib"
 import mermaidtext from "./mermaid-flowchart-private.md?raw"
 import type {
@@ -56,49 +60,160 @@ const mermaidNodeGeometryMakers: {
 }
 
 const mermaidEdgeGeometryMakers: {
-  [K in MermaidEdgeStrokeType]: (length: number) => BufferGeometry
+  [K in MermaidEdgeStrokeType]: (
+    length: number,
+    detailScale: number,
+  ) => BufferGeometry
 } = {
-  "normal-arrow_point": (length: number) =>
-    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
-  "normal-arrow_open": (length: number) =>
-    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
-  "normal-double_arrow_point": (length: number) =>
-    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
-  "dotted-arrow_point": (length: number) =>
-    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
-  "dotted-arrow_open": (length: number) =>
-    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
-  "dotted-double_arrow_point": (length: number) =>
-    getChamferedCylinderGeometry(0.2, length, 32, 11, 0.05),
-  "thick-arrow_point": (length: number) =>
-    getChamferedCylinderGeometry(0.3, length, 32, 11, 0.05),
-  "thick-arrow_open": (length: number) =>
-    getChamferedCylinderGeometry(0.3, length, 32, 11, 0.05),
-  "thick-double_arrow_point": (length: number) =>
-    getChamferedCylinderGeometry(0.3, length, 32, 11, 0.05),
+  "normal-arrow_point": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.2,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "normal-arrow_open": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.2,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "normal-double_arrow_point": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.2,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "dotted-arrow_point": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.2,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "dotted-arrow_open": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.2,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "dotted-double_arrow_point": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.2,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "thick-arrow_point": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.3,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "thick-arrow_open": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.3,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "thick-double_arrow_point": (length: number, detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.3,
+      length,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
 }
 
 const mermaidSubEdgeGeometryMakers: {
-  [K in MermaidEdgeStrokeType]: () => BufferGeometry
+  [K in MermaidEdgeStrokeType]: (detailScale: number) => BufferGeometry
 } = {
-  "normal-arrow_point": () =>
-    getChamferedCylinderGeometry(0.15, 0.33, 16, 11, 0.125),
-  "normal-arrow_open": () =>
-    getChamferedCylinderGeometry(0.15, 0.33, 16, 11, 0.125),
-  "normal-double_arrow_point": () =>
-    getChamferedCylinderGeometry(0.15, 0.33, 16, 11, 0.125),
-  "dotted-arrow_point": () =>
-    getChamferedCylinderGeometry(0.15, 0.15, 16, 11, 0.125),
-  "dotted-arrow_open": () =>
-    getChamferedCylinderGeometry(0.15, 0.15, 16, 11, 0.125),
-  "dotted-double_arrow_point": () =>
-    getChamferedCylinderGeometry(0.15, 0.15, 16, 11, 0.125),
-  "thick-arrow_point": () =>
-    getChamferedCylinderGeometry(0.25, 0.33, 16, 11, 0.125),
-  "thick-arrow_open": () =>
-    getChamferedCylinderGeometry(0.25, 0.33, 16, 11, 0.125),
-  "thick-double_arrow_point": () =>
-    getChamferedCylinderGeometry(0.25, 0.33, 16, 11, 0.125),
+  "normal-arrow_point": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.15,
+      0.25,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "normal-arrow_open": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.15,
+      0.25,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "normal-double_arrow_point": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.15,
+      0.25,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.05,
+    ),
+  "dotted-arrow_point": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.15,
+      0.15,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.125,
+    ),
+  "dotted-arrow_open": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.15,
+      0.15,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.125,
+    ),
+  "dotted-double_arrow_point": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.15,
+      0.15,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.125,
+    ),
+  "thick-arrow_point": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.25,
+      0.33,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.125,
+    ),
+  "thick-arrow_open": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.25,
+      0.33,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.125,
+    ),
+  "thick-double_arrow_point": (detailScale: number) =>
+    getChamferedCylinderGeometry(
+      0.25,
+      0.33,
+      ~~(32 * detailScale),
+      ~~(11 * detailScale),
+      0.125,
+    ),
 }
 
 class Node {
@@ -213,13 +328,44 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             continue
           }
           const vert = vertDatas[vId]
-          const geo = mermaidNodeGeometryMakers[vert.type || "undefined"]()
+          let geo = mermaidNodeGeometryMakers[vert.type || "undefined"]()
+          let matParams = physicalMatParamLib.whitePlastic
+          if (vert.text.includes("💾")) {
+            matParams = physicalMatParamLib.cyber
+            geo = getWireBoxGeometry(1, 0, false)
+          } else if (vert.text.includes("🔑")) {
+            matParams = physicalMatParamLib.aluminum
+            geo = getOctahedronGeometry(1, 0, true)
+          } else if (vert.text.includes("🚪")) {
+            matParams = physicalMatParamLib.copper
+            geo = getOctahedronGeometry(1, 0, true)
+          } else if (vert.text.includes("📤")) {
+            matParams = physicalMatParamLib.steel
+            geo = getOctahedronGeometry(1, 1, true)
+          } else if (vert.text.includes("⛓️")) {
+            matParams = physicalMatParamLib.castIron
+            geo = getTripleChamferedCylinderGeometry(1, 1, 32, 11, 0.05, false)
+          } else if (vert.text.includes("🗄️")) {
+            matParams = physicalMatParamLib.copper
+            geo = getTripleChamferedCylinderGeometry(1, 1, 32, 11, 0.05, false)
+          } else if (vert.text.includes("🧑") || vert.text.includes("👷")) {
+            matParams = physicalMatParamLib.gold
+          }
+          if (vert.text.includes("🟢")) {
+            matParams = physicalMatParamLib.greenPlastic
+          } else if (vert.text.includes("🟣")) {
+            matParams = physicalMatParamLib.metalPurple
+          } else if (vert.text.includes("🔵")) {
+            matParams = physicalMatParamLib.metalBlue
+          }
           const nodeMaterial = new MeshPhysicalMaterial({
-            ...physicalMatParamLib.whitePlastic,
+            ...matParams,
             envMap,
             flatShading: geo.userData.requestFlatShading,
           })
           const nodeMesh = new Mesh(geo, nodeMaterial)
+          nodeMesh.userData.labelString = vert.text
+
           nodeMesh.position.set(
             randCentered(__spread, 0, detRand),
             randCentered(__spread, 0, detRand),
@@ -230,14 +376,12 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         }
         for (const subGraphData of subGraphDatas) {
           const geo = getIcoSphereGeometry(1, 6)
-          const subGraphMaterialBaseParams = {
+          const matParams: MeshPhysicalNodeMaterialParameters = {
             ...physicalMatParamLib.bubble,
             envMap,
             flatShading: geo.userData.requestFlatShading,
           }
-          const subGraphMaterial = new MeshPhysicalMaterial(
-            subGraphMaterialBaseParams,
-          )
+          const subGraphMaterial = new MeshPhysicalMaterial(matParams)
           const subGraphMesh = new Mesh(geo, subGraphMaterial)
           subGraphMesh.userData.notSelectable = true
           subGraphMesh.position.set(
@@ -255,30 +399,52 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           const edgeMeshType = `${edgeData.stroke}-${edgeData.type}` as const
           const geo = mermaidEdgeGeometryMakers[edgeMeshType](
             edgeData.length * __lengthScale * 0.5,
+            0.2,
           )
-          const subGeo = mermaidSubEdgeGeometryMakers[edgeMeshType]()
-          const linkMaterialBaseParams = {
+          let matParams: MeshPhysicalMaterialParameters = {
             ...physicalMatParamLib.gold,
             envMap,
             flatShading: geo.userData.requestFlatShading,
+          }
+          let subGeo = mermaidSubEdgeGeometryMakers[edgeMeshType](1)
+          if (edgeData.text.includes("🚀")) {
+            matParams = physicalMatParamLib.cyber
+            subGeo = mermaidSubEdgeGeometryMakers[edgeMeshType](0.2)
+          } else if (edgeData.text.includes("📊")) {
+            matParams = physicalMatParamLib.steel
+          } else if (edgeData.text.includes("🔑")) {
+            matParams = physicalMatParamLib.aluminum
+          } else if (edgeData.text.includes("⛓️")) {
+            matParams = physicalMatParamLib.castIron
+          }
+          if (edgeData.text.includes("🟢")) {
+            matParams = physicalMatParamLib.greenPlastic
+          } else if (edgeData.text.includes("🟣")) {
+            matParams = physicalMatParamLib.metalPurple
+          } else if (edgeData.text.includes("🔵")) {
+            matParams = physicalMatParamLib.metalBlue
           }
           const isSegmented =
             edgeData.type !== "arrow_open" || edgeData.stroke === "dotted"
           const linkMaterial = new MeshPhysicalMaterial(
             isSegmented
               ? {
-                  ...linkMaterialBaseParams,
+                  ...matParams,
                   alphaHash: true,
                   opacity: 0.2,
+                  wireframe: false,
                 }
-              : linkMaterialBaseParams,
+              : matParams,
           )
           const linkMesh = new Mesh(geo, linkMaterial)
+          linkMesh.userData.connectedMeshes = [
+            leafNodeBank.get(edgeData.start)?.mesh,
+            leafNodeBank.get(edgeData.end)?.mesh,
+          ]
+          linkMesh.userData.labelString = edgeData.text
           const subMeshes: Mesh[] = []
           if (isSegmented) {
-            const sublinkMaterial = new MeshPhysicalMaterial(
-              linkMaterialBaseParams,
-            )
+            const sublinkMaterial = new MeshPhysicalMaterial(matParams)
             for (let i = 0; i < edgeData.length * __lengthScale * 2; i++) {
               const linkSubMesh = new Mesh(subGeo, sublinkMaterial)
               subMeshes.push(linkSubMesh)

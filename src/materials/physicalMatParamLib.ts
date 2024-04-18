@@ -9,6 +9,32 @@ import type { MaterialNames } from "./MaterialNames"
 export const physicalMatParamLib: {
   [K in MaterialNames]: MeshPhysicalMaterialParameters
 } = {
+  metalPurple: {
+    color: 0xdd11ff,
+    metalness: 1,
+    roughness: 0.35,
+    sheen: 1,
+    sheenColor: 0xff0fa7,
+    clearcoat: 0,
+    clearcoatRoughness: 0.5,
+    iridescence: 0.2,
+    iridescenceIOR: 2,
+    anisotropy: 0.125,
+  },
+
+  metalBlue: {
+    color: 0x1144ff,
+    metalness: 1,
+    roughness: 0.35,
+    sheen: 1,
+    sheenColor: 0x0000ff,
+    clearcoat: 0,
+    clearcoatRoughness: 0.5,
+    iridescence: 0.2,
+    iridescenceIOR: 2,
+    anisotropy: 0.125,
+  },
+
   gold: {
     color: 0xffd711,
     metalness: 1,
@@ -62,6 +88,19 @@ export const physicalMatParamLib: {
     anisotropy: 0.125,
   },
 
+  castIron: {
+    color: 0x222222,
+    metalness: 1,
+    roughness: 0.8,
+    sheen: 0.25,
+    sheenColor: 0xffa70f,
+    clearcoat: 0,
+    clearcoatRoughness: 0.5,
+    iridescence: 0.2,
+    iridescenceIOR: 2,
+    anisotropy: 0.125,
+  },
+
   steel: {
     color: 0x8c8c8c,
     metalness: 1,
@@ -77,6 +116,16 @@ export const physicalMatParamLib: {
 
   whitePlastic: {
     color: 0xffffff,
+    metalness: 0,
+    roughness: 0.25,
+    sheen: 1,
+    sheenColor: 0xffffff,
+    clearcoat: 1,
+    clearcoatRoughness: 0.25,
+  },
+
+  greenPlastic: {
+    color: 0x11ff11,
     metalness: 0,
     roughness: 0.25,
     sheen: 1,
@@ -110,5 +159,19 @@ export const physicalMatParamLib: {
     depthWrite: false,
     side: DoubleSide,
     blending: AdditiveBlending,
+    transparent: true,
+    opacity: 0.2,
+  },
+
+  cyber: {
+    color: new Color(0, 0.5, 1),
+    metalness: 0,
+    roughness: 0.5,
+    sheen: 0.5,
+    sheenColor: 0xffa7af,
+    iridescence: 2,
+    iridescenceIOR: 1.2,
+    emissive: new Color(0, 0.25, 0.5),
+    wireframe: true,
   },
 } as const

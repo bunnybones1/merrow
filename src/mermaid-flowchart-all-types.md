@@ -1,7 +1,9 @@
+## README
+
 ```mermaid
 flowchart 
 
-square[t1]
+square[hi there]
 stadium([t2])
 subroutine[[t3]]
 cylinder[(t4)]
@@ -15,6 +17,7 @@ lean_left[\\x1\\]
 trapezoid[/x1\\]
 inv_trapezoid[\\x1/]
 
+square --> stadium
 a --> b[[bang]]
 ```
 
@@ -23,6 +26,6 @@ flowchart
 
 a --> b[[bang]]
 b <--> c[[bong]]
-b ==> c[[bong]]
-b --- c[[bong]]
+b ==> c
+b --- c
 ```

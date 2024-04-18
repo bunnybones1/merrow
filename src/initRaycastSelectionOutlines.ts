@@ -7,11 +7,10 @@ import {
   type WebGLRenderer,
 } from "three"
 import {
+  type CSS2DObject,
   type EffectComposer,
-  FXAAShader,
   OutlinePass,
   OutputPass,
-  ShaderPass,
 } from "three/examples/jsm/Addons.js"
 
 export function initRaycastSelectionOutlines(
@@ -19,6 +18,7 @@ export function initRaycastSelectionOutlines(
   camera: Camera,
   composer: EffectComposer,
   renderer: WebGLRenderer,
+  labelPool: CSS2DObject[],
 ) {
   let selectedObjects: Object3D[] = []
 
@@ -35,9 +35,28 @@ export function initRaycastSelectionOutlines(
 
   renderer.domElement.addEventListener("pointermove", onPointerMove)
 
-  function addSelectedObject(object: Object3D) {
+  let labelIndex = 0
+  function addSubSelection(obj: Object3D) {
+    selectedObjects.push(obj)
+    if (obj.userData.labelString) {
+      const label = labelPool[labelIndex]
+      labelIndex++
+      label.element.textContent = obj.userData.labelString
+      obj.add(label)
+    }
+  }
+  function selectObject(object: Object3D) {
+    labelIndex = 0
     selectedObjects = []
-    selectedObjects.push(object)
+    addSubSelection(object)
+    if (object.userData.connectedMeshes) {
+      for (const obj of object.userData.connectedMeshes) {
+        addSubSelection(obj)
+      }
+    }
+    for (let i = labelIndex; i < labelPool.length; i++) {
+      labelPool[i].element.textContent = ""
+    }
   }
 
   function checkIntersections() {
@@ -49,7 +68,7 @@ export function initRaycastSelectionOutlines(
       for (const intersection of intersections) {
         const selectedObject = intersection.object
         if (!selectedObject.userData.notSelectable) {
-          addSelectedObject(selectedObject)
+          selectObject(selectedObject)
           outlinePass.selectedObjects = selectedObjects
           break
         }
@@ -65,16 +84,10 @@ export function initRaycastSelectionOutlines(
     camera,
   )
   composer.addPass(outlinePass)
+  outlinePass.hiddenEdgeColor.set(0.25, 0.25, 0.25)
 
   const outputPass = new OutputPass()
   composer.addPass(outputPass)
-
-  const effectFXAA = new ShaderPass(FXAAShader)
-  effectFXAA.uniforms.resolution.value.set(
-    1 / window.innerWidth,
-    1 / window.innerHeight,
-  )
-  composer.addPass(effectFXAA)
 
   window.addEventListener("resize", onWindowResize)
 
@@ -87,10 +100,5 @@ export function initRaycastSelectionOutlines(
 
     // renderer.setSize(width, height)
     composer.setSize(width, height)
-
-    effectFXAA.uniforms.resolution.value.set(
-      1 / window.innerWidth,
-      1 / window.innerHeight,
-    )
   }
 }

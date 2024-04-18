@@ -28,6 +28,12 @@ export const standardMatParamLib: {
     roughness: 0.6,
   },
 
+  castIron: {
+    color: 0x222222,
+    metalness: 0.95,
+    roughness: 0.8,
+  },
+
   steel: {
     color: 0x8c8c8c,
     metalness: 0.85,
@@ -52,5 +58,11 @@ export const standardMatParamLib: {
     roughness: 0.75,
     opacity: 0.2,
     transparent: true,
+  },
+  cyber: {
+    color: 0x00ff00,
+    metalness: 0.3,
+    roughness: 0.75,
+    wireframe: true,
   },
 } as const

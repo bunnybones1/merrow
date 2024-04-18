@@ -5,11 +5,15 @@ import {
   PMREMGenerator,
   WebGLRenderer,
 } from "three"
-import { PointLight } from "three"
 import { PerspectiveCamera } from "three"
 import { Scene } from "three"
 import { Object3D } from "three"
-import { EffectComposer, RenderPass } from "three/examples/jsm/Addons.js"
+import {
+  CSS2DObject,
+  CSS2DRenderer,
+  EffectComposer,
+  RenderPass,
+} from "three/examples/jsm/Addons.js"
 import type {} from "vite"
 import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
 import { initRaycastSelectionOutlines } from "./initRaycastSelectionOutlines"
@@ -19,6 +23,7 @@ import HemisphereAmbientMaterial from "./materials/HemisphereAmbientMaterial"
 import { testMermaidFlowchart } from "./testMermaidFlowchart"
 import { testModelCluster } from "./testModelCluster"
 import { deepenColor } from "./utils/color/deepenColor"
+import { randCentered } from "./utils/math/randCentered"
 
 // Create a scene
 const scene = new Scene()
@@ -39,6 +44,25 @@ const renderer = new WebGLRenderer()
 
 renderer.autoClear = false
 renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+const cssRenderer = new CSS2DRenderer()
+cssRenderer.setSize(window.innerWidth, window.innerHeight)
+cssRenderer.domElement.style.position = "absolute"
+cssRenderer.domElement.style.top = "0px"
+cssRenderer.domElement.style.pointerEvents = "none"
+document.body.appendChild(cssRenderer.domElement)
+
+function makeLabel() {
+  const text = document.createElement("div")
+  text.className = "label"
+  text.textContent = ""
+
+  const label = new CSS2DObject(text)
+  scene.add(label)
+  return label
+}
+renderer.autoClear = false
 document.body.appendChild(renderer.domElement)
 
 const pivot = new Object3D()
@@ -75,7 +99,11 @@ const renderPass = new RenderPass(scene, camera)
 renderPass.clear = false
 composer.addPass(renderPass)
 
-initRaycastSelectionOutlines(scene, camera, composer, renderer)
+initRaycastSelectionOutlines(scene, camera, composer, renderer, [
+  makeLabel(),
+  makeLabel(),
+  makeLabel(),
+])
 
 window.addEventListener("resize", onWindowResize)
 
@@ -83,15 +111,18 @@ function onWindowResize() {
   const width = window.innerWidth
   const height = window.innerHeight
   composer.setSize(width, height)
+  cssRenderer.setSize(width, height)
 }
 function rafRender() {
   requestAnimationFrame(rafRender)
-  bgCam.quaternion.copy(camera.quaternion)
+  light.position.set(1, 1, 1).normalize()
+  light.position.applyQuaternion(camera.quaternion)
   bgCam.quaternion.copy(camera.quaternion)
   bgCam.scale.copy(camera.scale)
   bgCam.projectionMatrix.copy(camera.projectionMatrix)
   bgCam.projectionMatrixInverse.copy(camera.projectionMatrixInverse)
   composer.render()
+  cssRenderer.render(scene, camera)
 }
 rafRender()
 
