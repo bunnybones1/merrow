@@ -11,6 +11,7 @@ import {
 import { Mesh } from "three"
 import type { MeshPhysicalNodeMaterialParameters } from "three/examples/jsm/nodes/materials/MeshPhysicalNodeMaterial.js"
 import { getChamferedCylinderGeometry } from "./geometry/createChamferedCylinderGeometry"
+import { getDoubleGeometry } from "./geometry/createDoubleGeometry"
 import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
 import { getOctahedronGeometry } from "./geometry/createOctahedronGeometry"
 import { getTetrahedronGeometry } from "./geometry/createTetrahedronGeometry"
@@ -397,7 +398,7 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         }
         for (const edgeData of edgeDatas) {
           const edgeMeshType = `${edgeData.stroke}-${edgeData.type}` as const
-          const geo = mermaidEdgeGeometryMakers[edgeMeshType](
+          let geo = mermaidEdgeGeometryMakers[edgeMeshType](
             edgeData.length * __lengthScale * 0.5,
             0.2,
           )
@@ -436,6 +437,9 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
                 }
               : matParams,
           )
+          if (edgeData.type === "double_arrow_point") {
+            geo = getDoubleGeometry(geo, new Vector3(0.3, 0, 0))
+          }
           const linkMesh = new Mesh(geo, linkMaterial)
           linkMesh.userData.connectedMeshes = [
             leafNodeBank.get(edgeData.start)?.mesh,
@@ -445,7 +449,15 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           const subMeshes: Mesh[] = []
           if (isSegmented) {
             const sublinkMaterial = new MeshPhysicalMaterial(matParams)
-            for (let i = 0; i < edgeData.length * __lengthScale * 2; i++) {
+            for (
+              let i = 0;
+              i <
+              edgeData.length *
+                __lengthScale *
+                2 *
+                (edgeData.type === "double_arrow_point" ? 2 : 1);
+              i++
+            ) {
               const linkSubMesh = new Mesh(subGeo, sublinkMaterial)
               subMeshes.push(linkSubMesh)
               linkMesh.add(linkSubMesh)
@@ -603,7 +615,11 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         edge.mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), temp)
         edge.mesh.scale.y = dist / edge.data.length
         for (let ism = 0; ism < edge.subMeshes.length; ism++) {
+          const direction =
+            edge.data.type === "double_arrow_point" && ism % 2 === 0 ? 1 : -1
           const subMesh = edge.subMeshes[ism]
+          subMesh.position.x =
+            edge.data.type === "double_arrow_point" ? direction * 0.15 : 0
           subMesh.position.y =
             ((((timeNow * (edge.data.type !== "arrow_open" ? 0.001 : 0) + ism) /
               edge.subMeshes.length) %
@@ -611,7 +627,7 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
               0.5) *
             edge.data.length *
             __lengthScale *
-            (edge.data.type === "double_arrow_point" && ism % 2 === 0 ? 1 : -1)
+            direction
         }
       }
     }

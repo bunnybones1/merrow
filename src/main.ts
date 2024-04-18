@@ -21,9 +21,7 @@ import { initResizeHandler } from "./initResizeHandler"
 import { initViewControls } from "./initViewControls"
 import HemisphereAmbientMaterial from "./materials/HemisphereAmbientMaterial"
 import { testMermaidFlowchart } from "./testMermaidFlowchart"
-import { testModelCluster } from "./testModelCluster"
 import { deepenColor } from "./utils/color/deepenColor"
-import { randCentered } from "./utils/math/randCentered"
 
 // Create a scene
 const scene = new Scene()
