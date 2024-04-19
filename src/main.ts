@@ -15,10 +15,10 @@ import {
   RenderPass,
 } from "three/examples/jsm/Addons.js"
 import type {} from "vite"
+import ViewControls from "./ViewControls"
 import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
 import { initRaycastSelectionOutlines } from "./initRaycastSelectionOutlines"
 import { initResizeHandler } from "./initResizeHandler"
-import { initViewControls } from "./initViewControls"
 import HemisphereAmbientMaterial from "./materials/HemisphereAmbientMaterial"
 import { testMermaidFlowchart } from "./testMermaidFlowchart"
 import { deepenColor } from "./utils/color/deepenColor"
@@ -111,6 +111,9 @@ function onWindowResize() {
   composer.setSize(width, height)
   cssRenderer.setSize(width, height)
 }
+
+const viewControls = new ViewControls(camera)
+
 function rafRender() {
   requestAnimationFrame(rafRender)
   light.position.set(1, 1, 1).normalize()
@@ -127,6 +130,7 @@ rafRender()
 let simulateMermaid: (() => void) | undefined
 function rafSimulate() {
   requestAnimationFrame(rafSimulate)
+  viewControls.simulate()
   if (simulateMermaid) {
     simulateMermaid()
   }
@@ -142,7 +146,6 @@ deepenColor(worldColorTop, 0.75)
 deepenColor(worldColorBottom, 0.75)
 
 initResizeHandler(camera, renderer)
-initViewControls(camera, camDistance)
 
 // if (import.meta.hot) {
 //   import.meta.hot.accept("./testModelCluster", (mod) => {
