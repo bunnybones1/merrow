@@ -1,7 +1,6 @@
 import Mermaid from "mermaid"
 import {
   type BufferGeometry,
-  DoubleSide,
   MeshPhysicalMaterial,
   type MeshPhysicalMaterialParameters,
   Object3D,
@@ -18,7 +17,7 @@ import { getTetrahedronGeometry } from "./geometry/createTetrahedronGeometry"
 import { getTripleChamferedCylinderGeometry } from "./geometry/createTripleChamferedCylinderGeometry"
 import { getWireBoxGeometry } from "./geometry/createWireBoxGeometry"
 import { physicalMatParamLib } from "./materials/physicalMatParamLib"
-import mermaidtext from "./mermaid-flowchart-private.md?raw"
+import mermaidtext from "./mermaid-flowchart-subcharts.md?raw"
 import type {
   MermaidEdge,
   MermaidEdgeStrokeType,
