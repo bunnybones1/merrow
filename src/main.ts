@@ -162,7 +162,11 @@ if (import.meta.hot) {
     while (pivotMermaid.children.length > 0) {
       pivotMermaid.remove(pivotMermaid.children[0])
     }
-    simulateMermaid = mod.testMermaidFlowchart(pivotMermaid, envMap.texture)
+    simulateMermaid = mod.testMermaidFlowchart(
+      pivotMermaid,
+      envMap.texture,
+      camera,
+    )
   })
 }
-simulateMermaid = testMermaidFlowchart(pivotMermaid, envMap.texture)
+simulateMermaid = testMermaidFlowchart(pivotMermaid, envMap.texture, camera)

@@ -1,6 +1,4 @@
 export type MaterialNames =
-  | "metalBlue"
-  | "metalPurple"
   | "gold"
   | "copper"
   | "aluminum"
@@ -8,7 +6,6 @@ export type MaterialNames =
   | "castIron"
   | "steel"
   | "whitePlastic"
-  | "greenPlastic"
   | "pearl"
   | "bubble"
   | "cyber"

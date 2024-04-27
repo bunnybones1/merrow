@@ -9,32 +9,6 @@ import type { MaterialNames } from "./MaterialNames"
 export const physicalMatParamLib: {
   [K in MaterialNames]: MeshPhysicalMaterialParameters
 } = {
-  metalPurple: {
-    color: 0xdd11ff,
-    metalness: 1,
-    roughness: 0.35,
-    sheen: 1,
-    sheenColor: 0xff0fa7,
-    clearcoat: 0,
-    clearcoatRoughness: 0.5,
-    iridescence: 0.2,
-    iridescenceIOR: 2,
-    anisotropy: 0.125,
-  },
-
-  metalBlue: {
-    color: 0x1144ff,
-    metalness: 1,
-    roughness: 0.35,
-    sheen: 1,
-    sheenColor: 0x0000ff,
-    clearcoat: 0,
-    clearcoatRoughness: 0.5,
-    iridescence: 0.2,
-    iridescenceIOR: 2,
-    anisotropy: 0.125,
-  },
-
   gold: {
     color: 0xffd711,
     metalness: 1,
@@ -104,7 +78,7 @@ export const physicalMatParamLib: {
   steel: {
     color: 0x8c8c8c,
     metalness: 1,
-    roughness: 0.3,
+    roughness: 0.35,
     sheen: 0,
     sheenColor: 0xffa70f,
     clearcoat: 0,
@@ -116,16 +90,6 @@ export const physicalMatParamLib: {
 
   whitePlastic: {
     color: 0xffffff,
-    metalness: 0,
-    roughness: 0.25,
-    sheen: 1,
-    sheenColor: 0xffffff,
-    clearcoat: 1,
-    clearcoatRoughness: 0.25,
-  },
-
-  greenPlastic: {
-    color: 0x11ff11,
     metalness: 0,
     roughness: 0.25,
     sheen: 1,

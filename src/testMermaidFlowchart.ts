@@ -1,14 +1,19 @@
 import Mermaid from "mermaid"
 import {
   type BufferGeometry,
+  Color,
+  Euler,
   MeshPhysicalMaterial,
   type MeshPhysicalMaterialParameters,
   Object3D,
+  type PerspectiveCamera,
+  Quaternion,
   type Texture,
   Vector3,
 } from "three"
 import { Mesh } from "three"
 import type { MeshPhysicalNodeMaterialParameters } from "three/examples/jsm/nodes/materials/MeshPhysicalNodeMaterial.js"
+import { getChamferedBoxGeometry } from "./geometry/createChamferedBoxGeometry"
 import { getChamferedCylinderGeometry } from "./geometry/createChamferedCylinderGeometry"
 import { getDoubleGeometry } from "./geometry/createDoubleGeometry"
 import { getIcoSphereGeometry } from "./geometry/createIcoSphereGeometry"
@@ -17,7 +22,7 @@ import { getTetrahedronGeometry } from "./geometry/createTetrahedronGeometry"
 import { getTripleChamferedCylinderGeometry } from "./geometry/createTripleChamferedCylinderGeometry"
 import { getWireBoxGeometry } from "./geometry/createWireBoxGeometry"
 import { physicalMatParamLib } from "./materials/physicalMatParamLib"
-import mermaidtext from "./mermaid-flowchart-subcharts.md?raw"
+import mermaidtext from "./mermaid-flowchart-private.md?raw"
 import type {
   MermaidEdge,
   MermaidEdgeStrokeType,
@@ -26,6 +31,7 @@ import type {
   MermaidVertex,
   MermaidVertexType,
 } from "./typings/mermaidFlowchartTypes"
+import { getEmojiColor } from "./utils/color/emojiPalette"
 import { lerp } from "./utils/math/lerp"
 import { makeDetRand } from "./utils/math/makeDetRand"
 import { randCentered } from "./utils/math/randCentered"
@@ -36,6 +42,8 @@ const __maxLinkBuffer = 2
 const __forceRepel = 0.2
 const __forceAttract = 0.05
 const __lengthScale = 4
+
+const RADIUS_CONNECTION_DEFAULT = 0.3
 
 const regex = /(?<=\`\`\`mermaid\n)([\s\S]*?)(?=\n\`\`\`)/g
 
@@ -193,33 +201,36 @@ const mermaidSubEdgeGeometryMakers: {
   "thick-arrow_point": (detailScale: number) =>
     getChamferedCylinderGeometry(
       0.25,
-      0.33,
+      0.25,
       ~~(32 * detailScale),
       ~~(11 * detailScale),
-      0.125,
+      0.075,
     ),
   "thick-arrow_open": (detailScale: number) =>
     getChamferedCylinderGeometry(
       0.25,
-      0.33,
+      0.25,
       ~~(32 * detailScale),
       ~~(11 * detailScale),
-      0.125,
+      0.075,
     ),
   "thick-double_arrow_point": (detailScale: number) =>
     getChamferedCylinderGeometry(
       0.25,
-      0.33,
+      0.25,
       ~~(32 * detailScale),
       ~~(11 * detailScale),
-      0.125,
+      0.075,
     ),
 }
 
 class Node {
-  radius = 1
   potential = new Vector3()
-  constructor(public mesh: Object3D) {
+  constructor(
+    public mesh: Object3D,
+    public radiusCollision = 1,
+    public radiusConnection = RADIUS_CONNECTION_DEFAULT,
+  ) {
     //
   }
   integratePotential() {
@@ -232,8 +243,10 @@ class LeafNode extends Node {
   constructor(
     public data: MermaidVertex,
     mesh: Object3D,
+    radiusCollision?: number,
+    radiusConnection?: number,
   ) {
-    super(mesh)
+    super(mesh, radiusCollision, radiusConnection)
   }
 }
 class Edge {
@@ -265,12 +278,13 @@ class Graph extends Node {
 }
 
 class SubGraph extends Graph {
-  radius = 3
   constructor(
     public data: MermaidSubGraph,
     mesh: Mesh,
+    radiusCollision = 3,
+    radiusConnection = 3,
   ) {
-    super(mesh)
+    super(mesh, radiusCollision, radiusConnection)
     this.internalPositionScale = 0.98
   }
 }
@@ -280,7 +294,14 @@ class FlowChart {
   edges: Edge[] = []
 }
 
-export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
+const __nodeViewingAngle = new Quaternion()
+const __nodeViewingAngleTilt = new Quaternion()
+__nodeViewingAngleTilt.setFromEuler(new Euler(0.4, 0, 0))
+export function testMermaidFlowchart(
+  pivot: Object3D,
+  envMap: Texture,
+  camera: PerspectiveCamera,
+) {
   const flowcharts: FlowChart[] = []
   Mermaid.mermaidAPI.initialize()
   async function asyncWork() {
@@ -294,6 +315,8 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         const edgeDatas = parsed.getEdges()
         const subGraphDatas = parsed.getSubGraphs()
         const flowChart = new FlowChart()
+        const leafNodes: LeafNode[] = []
+        const edges: Edge[] = []
         const leafNodeBank = new Map<string, LeafNode>()
         function getBankedLeafNode(id: string) {
           const n = leafNodeBank.get(id)
@@ -323,14 +346,47 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           }
           return n
         }
+        let isolatedNodeMesh: Object3D | undefined
+        function onClickNodeMesh(this: Object3D) {
+          if (isolatedNodeMesh !== this) {
+            isolatedNodeMesh = this
+            for (const node of leafNodes) {
+              node.mesh.visible = this === node.mesh
+            }
+            for (const edge of edges) {
+              edge.mesh.visible =
+                this === edge.nodeA.mesh || this === edge.nodeB.mesh
+              if (edge.mesh.visible) {
+                edge.nodeA.mesh.visible = true
+                edge.nodeB.mesh.visible = true
+              }
+            }
+          } else {
+            isolatedNodeMesh = undefined
+            for (const node of leafNodes) {
+              node.mesh.visible = true
+            }
+            for (const edge of edges) {
+              edge.mesh.visible = true
+            }
+          }
+        }
         for (const vId of Object.keys(vertDatas)) {
           if (subGraphDatas.some((sgd) => sgd.id === vId)) {
             continue
           }
           const vert = vertDatas[vId]
+          let radiusCollision = 1
+          let radiusConnection = RADIUS_CONNECTION_DEFAULT
           let geo = mermaidNodeGeometryMakers[vert.type || "undefined"]()
-          let matParams = physicalMatParamLib.whitePlastic
-          if (vert.text.includes("💾")) {
+          let matParams = vert.text.includes("🪙")
+            ? physicalMatParamLib.steel
+            : physicalMatParamLib.whitePlastic
+          if (vert.text.includes("🖥️")) {
+            geo = getChamferedBoxGeometry(4, 3, 0.5, 0.05)
+            radiusCollision = 3
+            radiusConnection = 0.2
+          } else if (vert.text.includes("💾")) {
             matParams = physicalMatParamLib.cyber
             geo = getWireBoxGeometry(1, 0, false)
           } else if (vert.text.includes("🔑")) {
@@ -351,12 +407,12 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           } else if (vert.text.includes("🧑") || vert.text.includes("👷")) {
             matParams = physicalMatParamLib.gold
           }
-          if (vert.text.includes("🟢")) {
-            matParams = physicalMatParamLib.greenPlastic
-          } else if (vert.text.includes("🟣")) {
-            matParams = physicalMatParamLib.metalPurple
-          } else if (vert.text.includes("🔵")) {
-            matParams = physicalMatParamLib.metalBlue
+          const emojiColor = getEmojiColor(vert.text)
+          if (emojiColor) {
+            matParams = {
+              ...matParams,
+              color: emojiColor,
+            }
           }
           const nodeMaterial = new MeshPhysicalMaterial({
             ...matParams,
@@ -365,14 +421,36 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           })
           const nodeMesh = new Mesh(geo, nodeMaterial)
           nodeMesh.userData.labelString = vert.text
+          nodeMesh.userData.onClick = onClickNodeMesh.bind(nodeMesh)
 
           nodeMesh.position.set(
             randCentered(__spread, 0, detRand),
             randCentered(__spread, 0, detRand),
             randCentered(__spread, 0, detRand),
           )
+
+          if (vert.text.includes("🖥️")) {
+            const extraMesh = new Mesh(
+              getChamferedBoxGeometry(4 - 0.3, 3 - 0.3, 0.5 + 0.1, 0.05),
+              new MeshPhysicalMaterial({
+                ...physicalMatParamLib.pearl,
+                color: new Color(0),
+              }),
+            )
+            extraMesh.userData.notSelectable = true
+
+            nodeMesh.add(extraMesh)
+          }
           pivot.add(nodeMesh)
-          leafNodeBank.set(vId, new LeafNode(vert, nodeMesh))
+          nodeMesh.userData.connectedMeshes = []
+          const leafNode = new LeafNode(
+            vert,
+            nodeMesh,
+            radiusCollision,
+            radiusConnection,
+          )
+          leafNodeBank.set(vId, leafNode)
+          leafNodes.push(leafNode)
         }
         for (const subGraphData of subGraphDatas) {
           const geo = getIcoSphereGeometry(1, 6)
@@ -402,7 +480,9 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             0.2,
           )
           let matParams: MeshPhysicalMaterialParameters = {
-            ...physicalMatParamLib.gold,
+            ...(edgeData.text.includes("🪙")
+              ? physicalMatParamLib.steel
+              : physicalMatParamLib.whitePlastic),
             envMap,
             flatShading: geo.userData.requestFlatShading,
           }
@@ -417,12 +497,12 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           } else if (edgeData.text.includes("⛓️")) {
             matParams = physicalMatParamLib.castIron
           }
-          if (edgeData.text.includes("🟢")) {
-            matParams = physicalMatParamLib.greenPlastic
-          } else if (edgeData.text.includes("🟣")) {
-            matParams = physicalMatParamLib.metalPurple
-          } else if (edgeData.text.includes("🔵")) {
-            matParams = physicalMatParamLib.metalBlue
+          const emojiColor = getEmojiColor(edgeData.text)
+          if (emojiColor) {
+            matParams = {
+              ...matParams,
+              color: emojiColor,
+            }
           }
           const isSegmented =
             edgeData.type !== "arrow_open" || edgeData.stroke === "dotted"
@@ -440,11 +520,16 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             geo = getDoubleGeometry(geo, new Vector3(0.3, 0, 0))
           }
           const linkMesh = new Mesh(geo, linkMaterial)
-          linkMesh.userData.connectedMeshes = [
-            leafNodeBank.get(edgeData.start)?.mesh,
-            leafNodeBank.get(edgeData.end)?.mesh,
-          ]
+          const meshA = leafNodeBank.get(edgeData.start)?.mesh
+          const meshB = leafNodeBank.get(edgeData.end)?.mesh
+          if (!meshA || !meshB) {
+            throw new Error("mesh missing")
+          }
+          linkMesh.userData.connectedMeshes = [meshA, meshB]
+          meshA.userData.connectedMeshes.push(linkMesh)
+          meshB.userData.connectedMeshes.push(linkMesh)
           linkMesh.userData.labelString = edgeData.text
+          linkMesh.userData.isEdge = true
           const subMeshes: Mesh[] = []
           if (isSegmented) {
             const sublinkMaterial = new MeshPhysicalMaterial(matParams)
@@ -468,15 +553,15 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             randCentered(__spread, 0, detRand),
           )
           pivot.add(linkMesh)
-          flowChart.edges.push(
-            new Edge(
-              edgeData,
-              linkMesh,
-              getBankedNode(edgeData.start),
-              getBankedNode(edgeData.end),
-              subMeshes,
-            ),
+          const edge = new Edge(
+            edgeData,
+            linkMesh,
+            getBankedNode(edgeData.start),
+            getBankedNode(edgeData.end),
+            subMeshes,
           )
+          edges.push(edge)
+          flowChart.edges.push(edge)
         }
         flowChart.allGraphs.push(flowChart.graph)
         for (const subGraph of [...subGraphBank.values()]) {
@@ -502,8 +587,9 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
               recursiveGrow(child)
             }
           }
-          node.radius = Math.max(...node.nodes.map((n) => n.radius)) + 1
-          node.mesh.scale.setScalar(node.radius)
+          node.radiusCollision =
+            Math.max(...node.nodes.map((n) => n.radiusCollision)) + 1
+          node.mesh.scale.setScalar(node.radiusCollision)
         }
         recursiveGrow(flowChart.graph)
         flowcharts.push(flowChart)
@@ -526,7 +612,8 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
             const nodeB = graph.nodes[ib]
             const pA = nodeA.mesh.position
             const pB = nodeB.mesh.position
-            const dist = pA.distanceTo(pB) - nodeA.radius - nodeB.radius
+            const dist =
+              pA.distanceTo(pB) - nodeA.radiusCollision - nodeB.radiusCollision
             const minDistance = __minBuffer
             const push = Math.max(0, minDistance - dist)
             if (push > 0) {
@@ -542,7 +629,10 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
       for (const edge of flowchart.edges) {
         const pA = edge.nodeA.mesh.position
         const pB = edge.nodeB.mesh.position
-        const dist1 = pA.distanceTo(pB) - edge.nodeA.radius - edge.nodeB.radius
+        const dist1 =
+          pA.distanceTo(pB) -
+          edge.nodeA.radiusCollision -
+          edge.nodeB.radiusCollision
         const maxLinkDistance =
           __maxLinkBuffer + edge.data.length * __lengthScale
         const pull = Math.max(0, dist1 - maxLinkDistance)
@@ -553,7 +643,10 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           edge.nodeA.potential.add(temp)
           edge.nodeB.potential.sub(temp)
         }
-        const dist2 = pA.distanceTo(pB) - edge.nodeA.radius - edge.nodeB.radius
+        const dist2 =
+          pA.distanceTo(pB) -
+          edge.nodeA.radiusCollision -
+          edge.nodeB.radiusCollision
         const minDistance = __minBuffer + edge.data.length * __lengthScale
         const push = Math.max(0, minDistance - dist2)
         if (push > 0) {
@@ -569,12 +662,12 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         let maxRadius = 0
         let totalRadius = 0
         for (const node of graph.nodes) {
-          totalRadius += node.radius
+          totalRadius += node.radiusCollision
         }
         for (const node of graph.nodes) {
           temp2
             .copy(node.mesh.position)
-            .multiplyScalar(node.radius / totalRadius)
+            .multiplyScalar(node.radiusCollision / totalRadius)
           centroid.add(temp2)
         }
         temp2.subVectors(graph.mesh.position, centroid).multiplyScalar(0.15)
@@ -583,19 +676,22 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
           temp.subVectors(node.mesh.position, centroid)
           maxRadius = Math.max(
             maxRadius,
-            temp.length() + node.radius + __minBuffer * 0.5,
+            temp.length() + node.radiusCollision + __minBuffer * 0.5,
           )
           temp.multiplyScalar(0.01)
           node.potential.sub(temp)
         }
         centroid.sub(graph.mesh.position)
         graph.potential.add(centroid.clone().multiplyScalar(0.1))
-        graph.radius = lerp(graph.radius, maxRadius, 0.1)
-        graph.mesh.scale.setScalar(graph.radius)
+        graph.radiusCollision = lerp(graph.radiusCollision, maxRadius, 0.1)
+        graph.mesh.scale.setScalar(graph.radiusCollision)
       }
+      __nodeViewingAngle.copy(camera.quaternion)
+      __nodeViewingAngle.multiply(__nodeViewingAngleTilt)
       for (const graph of flowchart.allGraphs) {
         for (const node of graph.nodes) {
           node.integratePotential()
+          node.mesh.quaternion.copy(__nodeViewingAngle)
         }
       }
       for (const edge of flowchart.edges) {
@@ -603,16 +699,18 @@ export function testMermaidFlowchart(pivot: Object3D, envMap: Texture) {
         const nB = edge.nodeB
         const pA = nA.mesh.position
         const pB = nB.mesh.position
+        const totalRadii = nA.radiusConnection + nB.radiusConnection
+        temp.subVectors(pA, pB)
+        const dist = temp.length()
+        const gap = dist - totalRadii
         edge.mesh.position.lerpVectors(
           pA,
           pB,
-          nA.radius / (nA.radius + nB.radius),
+          (nA.radiusConnection + gap * 0.5) / dist,
         )
-        temp.subVectors(pA, pB)
-        const dist = temp.length() * 0.25
         temp.normalize()
         edge.mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), temp)
-        edge.mesh.scale.y = dist / edge.data.length
+        edge.mesh.scale.y = (gap * 0.25) / edge.data.length
         for (let ism = 0; ism < edge.subMeshes.length; ism++) {
           const direction =
             edge.data.type === "double_arrow_point" && ism % 2 === 0 ? 1 : -1
